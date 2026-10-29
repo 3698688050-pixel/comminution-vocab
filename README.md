@@ -1,12 +1,12 @@
 # 粉碎词汇 · comminution lexicon
 
-工业物料与粉碎设备专业词汇的一周记忆工具。正面只给中文，翻面得英文名、词根来源、化学式与物性。
+工业物料与粉碎设备专业词汇的记忆工具。正面只给中文，翻面得英文名、词根来源、化学式与物性。不设每日额度，开机接着上次的位置。
 
 在线使用：<https://3698688050-pixel.github.io/comminution-vocab/>
 
 ## 内容
 
-70 词 = 7 天 × 10 词，四类轮转交错，每天都是「矿物 + 机器零件 + 化学式 + 指标」的混合词表：
+70 词，四类轮转交错，相邻两张必属不同类，随手翻都是「矿物 + 机器零件 + 化学式 + 指标」的混合：
 
 | 分类 | 词数 | 例 |
 |---|---|---|
@@ -23,16 +23,17 @@
 
 - 轻触卡片或 `空格` / `回车` 翻面
 - `←` / `→` 换卡，`M` 标记已掌握（标记后自动跳下一张未掌握的）
-- 顶部七天格切换学习日，进度格可点直达单个词
-- 「词表」页全库检索中文 / 英文 / 词根 / 化学式 / 标签，点行原地展开
-- 进度存 localStorage，可「重置今日」
+- 顶部胶囊只收窄范围（全部 / 物料 / 部件 / 化学品 / 物性），两个视图共用，不限制背多少
+- 到头接着下一轮：`←` 在第一张回到最后一张，`→` 在最后一张回到第一张
+- 「词表」页检索中文 / 英文 / 词根 / 化学式 / 标签，已掌握的词带红点，点行原地展开
+- 进度存 localStorage，按当前范围「清空进度」
 
 ## 文件
 
 ```
 index.html              单页应用
 assets/styles.css       设计系统与组件
-assets/app.js           排课、翻转、进度
+assets/app.js           词序、翻转、进度
 data/terms.js           70 词条，唯一真源
 db/schema.sql           表 + 视图（SQLite 方言）
 db/seed.sql             生成的种子数据
@@ -49,15 +50,15 @@ DESIGN.md               完整设计方案
 node scripts/build-seed.mjs
 ```
 
-脚本会拒绝空字段、重复 id、未知分类、化学品缺化学式、缺性质或缺标签的数据，并打印每天的词数分布，通过后重写 `db/seed.sql`。
+脚本会拒绝空字段、重复 id、未知分类、化学品缺化学式、缺性质或缺标签的数据，并打印各类词数，通过后重写 `db/seed.sql`。
 
 ## 数据库
 
 ```
-term           静态词条：id, cn, en, cat, formula, props(JSON), root_*, tags(JSON), day, slot, seq
-review_log     每次作答一条：term_id, day, result(known|again), flipped, at
+term           静态词条：id, cn, en, cat, formula, props(JSON), root_*, tags(JSON), seq
+review_log     每次作答一条：term_id, result(known|again), flipped, at
 term_progress  视图：每词最近一次结果
-day_progress   视图：每天 mastered / total
+progress       视图：按类目 mastered / total
 ```
 
 词条与学习状态分表；`review_log` 只追加，`at + result + flipped` 已够接 SM-2 间隔重复。

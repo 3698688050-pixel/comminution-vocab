@@ -71,60 +71,30 @@ body {
 .view-btn[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ore); }
 .view-btn:hover { color: var(--ink); }
 
-/* ── day rail ────────────────────────────────────────────── */
-.rail {
+/* ── scope row (收窄视野，不是限额) ─────────────────────── */
+.scopes {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
-  padding: 2px 0 16px;
+  padding: 16px 0 18px;
+  margin-bottom: 22px;
   border-bottom: 1px solid var(--rule);
 }
-.day {
+.pill {
   appearance: none;
   font: inherit;
-  font-size: 13px;
+  font-size: 12.5px;
   font-variant-numeric: tabular-nums;
-  width: 34px;
-  height: 30px;
-  padding: 0;
+  padding: 5px 10px;
   border: 1px solid var(--rule);
-  border-radius: 3px;
+  border-radius: 999px;
   background: transparent;
   color: var(--steel);
   cursor: pointer;
-  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
 }
-.day:hover { color: var(--ink); border-color: var(--steel); }
-.day[aria-current="true"] {
-  background: var(--ink);
-  border-color: var(--ink);
-  color: var(--card);
-}
-.day[data-done="true"]:not([aria-current="true"]) { border-color: var(--ore); color: var(--ore); }
-
-/* ── trip strip (10 apertures of the day) ────────────────── */
-.strip {
-  display: grid;
-  grid-template-columns: repeat(10, 1fr);
-  gap: 4px;
-  padding: 16px 0 14px;
-}
-.ap {
-  appearance: none;
-  font: inherit;
-  font-size: 11px;
-  font-variant-numeric: tabular-nums;
-  height: 34px;
-  padding: 0;
-  border: 1px solid var(--rule);
-  border-radius: 2px;
-  background: transparent;
-  color: var(--steel);
-  cursor: pointer;
-  transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
-}
-.ap:hover { border-color: var(--steel); }
-.ap[data-state="mastered"] { background: var(--ore); border-color: var(--ore); color: #f8f9f6; }
-.ap[data-state="current"] { border-color: var(--ink); color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.pill:hover { color: var(--ink); border-color: var(--steel); }
+.pill[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #f2f3ef; }
 
 /* ── specimen card ───────────────────────────────────────── */
 .deck { perspective: 1600px; margin: 6px 0 18px; }
@@ -282,6 +252,11 @@ body {
 }
 .btn--primary:hover { background: #232a27; border-color: #232a27; }
 
+.pos { font-variant-numeric: tabular-nums; }
+.stats { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; }
+.also { color: var(--steel); }
+.meta-acts { display: inline-flex; gap: 14px; }
+
 .meta-row {
   display: flex;
   align-items: center;
@@ -306,7 +281,7 @@ body {
 .linkish[data-on="true"] { color: var(--ore); border-bottom-color: var(--ore); }
 
 /* ── index view ──────────────────────────────────────────── */
-.index-head { padding: 18px 0 14px; border-bottom: 1px solid var(--rule); }
+.index-head { padding: 4px 0 14px; border-bottom: 1px solid var(--rule); }
 .search {
   width: 100%;
   height: 42px;
@@ -320,21 +295,6 @@ body {
 }
 .search::placeholder { color: var(--steel); }
 .search:focus { outline: 2px solid var(--ore); outline-offset: 1px; border-color: transparent; }
-
-.filters { display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 0 0; }
-.pill {
-  appearance: none;
-  font: inherit;
-  font-size: 12.5px;
-  padding: 5px 10px;
-  border: 1px solid var(--rule);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--steel);
-  cursor: pointer;
-}
-.pill:hover { color: var(--ink); border-color: var(--steel); }
-.pill[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #f2f3ef; }
 
 .rows { list-style: none; margin: 0; padding: 0; }
 .row { border-bottom: 1px solid var(--rule); }
@@ -356,6 +316,16 @@ body {
 .row-cn { font-size: 15.5px; font-weight: 500; }
 .row-en { font-family: var(--sans); font-size: 13.5px; color: var(--steel); }
 .row-cat { font-size: 11.5px; color: var(--steel); text-align: right; white-space: nowrap; }
+.row[data-mastered="true"] .row-cat::before {
+  content: "";
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--ore);
+  margin-right: 7px;
+  vertical-align: 2px;
+}
 .row-btn:hover .row-en { color: var(--ink); }
 
 .row-body {
@@ -383,13 +353,12 @@ body {
   .headword-en { font-size: 27px; }
   .card { min-height: 340px; }
   .face { padding: 20px 18px 16px; }
-  .strip { grid-template-columns: repeat(10, 1fr); gap: 3px; }
-  .ap { height: 30px; font-size: 10px; }
+  .scopes { padding: 12px 0 14px; margin-bottom: 18px; }
   .row-btn { grid-template-columns: 78px 1fr auto; gap: 8px; }
   .row-cn { font-size: 14.5px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .card { transition: none; }
-  .ap, .day, .btn, .pill { transition: none; }
+  .btn, .pill { transition: none; }
 }

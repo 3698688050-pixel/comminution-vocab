@@ -5,7 +5,7 @@ PRAGMA foreign_keys = ON;
 
 -- ── 词条 ─────────────────────────────────────────────────────────────
 -- cat 四类：material 物料 / component 部件 / chemical 化学品 / metric 物性指标
--- day 与 slot 是「一周排课」的落库结果：day 1..7，slot 1..10（每天 10 词）
+-- 不设每日额度：seq 是唯一的全局顺序，学习节奏由使用者决定
 CREATE TABLE term (
   id          TEXT PRIMARY KEY,              -- 语义化 slug，如 'classifier-wheel'
   cn          TEXT NOT NULL,                  -- 中文（卡片正面）
@@ -18,13 +18,10 @@ CREATE TABLE term (
   root_gloss  TEXT NOT NULL,                  -- 词根释义
   root_note   TEXT NOT NULL,                  -- 构词逻辑，含「词源有争议」的如实标注
   tags        TEXT NOT NULL,                  -- JSON: ["非金属矿","高磨蚀"]
-  day         INTEGER NOT NULL CHECK (day BETWEEN 1 AND 7),
-  slot        INTEGER NOT NULL CHECK (slot BETWEEN 1 AND 10),
-  seq         INTEGER NOT NULL UNIQUE,        -- 全局学习顺序
+  seq         INTEGER NOT NULL UNIQUE,        -- 全局顺序，按类目轮转交错
   created_at  TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
-CREATE INDEX idx_term_day ON term (day, slot);
 CREATE INDEX idx_term_cat ON term (cat);
 
 -- ── 学习记录 ─────────────────────────────────────────────────────────
@@ -32,7 +29,6 @@ CREATE INDEX idx_term_cat ON term (cat);
 CREATE TABLE review_log (
   id        INTEGER PRIMARY KEY AUTOINCREMENT,
   term_id   TEXT NOT NULL REFERENCES term (id) ON DELETE CASCADE,
-  day       INTEGER NOT NULL,                 -- 学习日 1..7
   result    TEXT NOT NULL CHECK (result IN ('known', 'again')),
   flipped   INTEGER NOT NULL DEFAULT 0,       -- 是否翻面后才作答
   at        TEXT NOT NULL DEFAULT (datetime('now'))
@@ -41,23 +37,21 @@ CREATE TABLE review_log (
 CREATE INDEX idx_review_term ON review_log (term_id, at);
 
 -- ── 进度视图 ─────────────────────────────────────────────────────────
--- 每词最近一次 review 的结果，驱动「已掌握」状态与每日进度条
+-- 每词最近一次 review 的结果，驱动「已掌握」状态与进度计数
 CREATE VIEW term_progress AS
 SELECT t.id,
-       t.day,
-       t.slot,
+       t.cat,
        t.cn,
        t.en,
        (SELECT r.result FROM review_log r
          WHERE r.term_id = t.id ORDER BY r.at DESC, r.id DESC LIMIT 1) AS last_result
 FROM term t;
 
--- 每日完成度：mastered / total
-CREATE VIEW day_progress AS
-SELECT t.day,
+-- 完成度：按类目与全库计数，没有「今天必须背完」的概念
+CREATE VIEW progress AS
+SELECT t.cat,
        COUNT(*) AS total,
        SUM(CASE WHEN p.last_result = 'known' THEN 1 ELSE 0 END) AS mastered
 FROM term t
 JOIN term_progress p ON p.id = t.id
-GROUP BY t.day
-ORDER BY t.day;
+GROUP BY t.cat;

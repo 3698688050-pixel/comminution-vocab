@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>粉碎词汇 · comminution lexicon</title>
-<meta name="description" content="工业物料与粉碎设备专业词汇，按一周节奏记忆：中文看面，翻面得英文、词根与化学性质。">
+<meta name="description" content="工业物料与粉碎设备专业词汇，70 词随到随背：中文看面，翻面得英文、词根与化学性质。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -18,16 +18,15 @@
       <span class="brand-en">comminution lexicon</span>
     </div>
     <nav class="views" role="tablist">
-      <button class="view-btn" id="tabStudy" role="tab" aria-selected="true">今日</button>
+      <button class="view-btn" id="tabStudy" role="tab" aria-selected="true">背词</button>
       <button class="view-btn" id="tabIndex" role="tab" aria-selected="false">词表</button>
     </nav>
   </header>
 
+  <div class="scopes" id="scopes" role="group" aria-label="词库范围"></div>
+
   <main>
     <section id="viewStudy" aria-labelledby="tabStudy">
-      <div class="rail" id="rail" role="group" aria-label="学习日"></div>
-      <div class="strip" id="strip" role="group" aria-label="今日十个词"></div>
-
       <div class="deck">
         <div class="card" id="card" data-flipped="false" tabindex="0" role="button"
              aria-pressed="false" aria-live="polite"></div>
@@ -40,21 +39,21 @@
       </div>
 
       <div class="meta-row">
-        <span id="progress"></span>
-        <span>
+        <span class="stats">
+          <span id="progress"></span>
+          <span id="library" class="also"></span>
+        </span>
+        <span class="meta-acts">
           <button class="linkish" id="mark" data-on="false">标记已掌握</button>
-          <button class="linkish" id="reset">重置今日</button>
+          <button class="linkish" id="reset">清空进度</button>
         </span>
       </div>
     </section>
 
     <section id="viewIndex" hidden aria-labelledby="tabIndex">
-      <div class="index-head">
-        <input class="search" id="search" type="search" placeholder="搜索中文、英文或词根" autocomplete="off">
-        <div class="filters" id="filters"></div>
-      </div>
+      <input class="search" id="search" type="search" placeholder="搜索中文、英文、词根或化学式" autocomplete="off">
       <ul class="rows" id="rows"></ul>
-      <div class="empty" id="empty" hidden>没有匹配的词条。换个写法，或切回「今日」继续。</div>
+      <div class="empty" id="empty" hidden>没有匹配的词条。换个写法，或切回「背词」继续。</div>
     </section>
   </main>
 </div>

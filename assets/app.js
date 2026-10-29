@@ -1,6 +1,6 @@
 /* 粉碎词汇 · 学习台
- * 计划：四类词条轮转交错，每 10 词为一天，共 7 天。
- * 进度存 localStorage，纯前端，无请求。
+ * 70 词分四类，不设每日上限：进来自动接着上次的位置，想背多少背多少。
+ * 范围胶囊只收窄视野，不限制使用；进度存 localStorage，纯前端，无请求。
  */
 (function () {
   'use strict';
@@ -12,74 +12,79 @@
     { key: 'metric', label: '物性', prompt: '说出英文名与它的工程用途' }
   ];
   const CAT_LABEL = Object.fromEntries(CATS.map(c => [c.key, c.label]));
-  const PER_DAY = 10;
-  const STORE_KEY = 'comminution-vocab/v1';
+  const STORE_KEY = 'comminution-vocab/v2';
+  const LEGACY_KEY = 'comminution-vocab/v1';
 
-  /* ── 排课：类目轮流取词，保证每天都是混合词表 ───────────── */
-  function buildPlan(terms) {
+  /* ── 词序：类目轮流取词，相邻两张必属不同类 ───────────────── */
+  function interleave(terms) {
     const buckets = CATS.map(c => terms.filter(t => t.cat === c.key));
     const order = [];
     for (let i = 0; i < Math.max(...buckets.map(b => b.length)); i++) {
       for (const b of buckets) if (b[i]) order.push(b[i]);
     }
-    return order.map((t, i) => Object.assign({}, t, {
-      seq: i,
-      day: Math.floor(i / PER_DAY) + 1,
-      slot: (i % PER_DAY) + 1
-    }));
+    return order.map((t, i) => Object.assign({}, t, { seq: i }));
   }
 
-  const PLAN = buildPlan(window.TERMS || []);
-  const DAYS = Math.ceil(PLAN.length / PER_DAY);
+  const PLAN = interleave(window.TERMS || []);
+  const TOTAL = PLAN.length;
 
   /* ── state ──────────────────────────────────────────────── */
-  const load = () => {
-    try {
-      const raw = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
-      return { day: raw.day || 1, idx: raw.idx || 0, mastered: raw.mastered || {} };
-    } catch (e) {
-      return { day: 1, idx: 0, mastered: {} };
-    }
+  const read = key => {
+    try { return JSON.parse(localStorage.getItem(key) || 'null'); } catch (e) { return null; }
   };
+
+  function load() {
+    const raw = read(STORE_KEY) || (() => {
+      const old = read(LEGACY_KEY);               // v1 的「已掌握」直接带过来
+      return old ? { scope: 'all', mastered: old.mastered || {} } : {};
+    })();
+    const scope = raw.scope === 'all' || CAT_LABEL[raw.scope] ? raw.scope : 'all';
+    return {
+      scope,
+      idx: Math.max(0, raw.idx | 0),
+      mastered: raw.mastered && typeof raw.mastered === 'object' ? raw.mastered : {}
+    };
+  }
+
   const state = load();
   const save = () => localStorage.setItem(STORE_KEY, JSON.stringify(state));
 
   const $ = id => document.getElementById(id);
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
-  const dayTerms = d => PLAN.filter(t => t.day === d);
-  const currentDeck = () => dayTerms(state.day);
-  const current = () => currentDeck()[state.idx] || currentDeck()[0];
+  const scoped = () => (state.scope === 'all' ? PLAN : PLAN.filter(t => t.cat === state.scope));
+  const deck = () => scoped();
+  const current = () => { const d = deck(); return d[Math.min(state.idx, d.length - 1)] || d[0]; };
+  const masteredIn = list => list.filter(t => state.mastered[t.id]).length;
 
-  /* ── rail / strip ───────────────────────────────────────── */
-  function renderRail() {
-    $('rail').innerHTML = Array.from({ length: DAYS }, (_, i) => {
-      const d = i + 1;
-      const deck = dayTerms(d);
-      const done = deck.length > 0 && deck.every(t => state.mastered[t.id]);
-      return `<button class="day" data-day="${d}" aria-current="${d === state.day}"
-        data-done="${done}" title="第 ${d} 天 · ${deck.length} 词">${d}</button>`;
-    }).join('');
+  /* ── scope ──────────────────────────────────────────────── */
+  function renderScopes() {
+    const chip = (key, label, n) => `<button class="pill" data-s="${key}"
+      aria-pressed="${state.scope === key}">${label} ${n}</button>`;
+    $('scopes').innerHTML =
+      chip('all', '全部', TOTAL) +
+      CATS.map(c => chip(c.key, c.label, PLAN.filter(t => t.cat === c.key).length)).join('');
   }
 
-  function renderStrip() {
-    const deck = currentDeck();
-    $('strip').innerHTML = deck.map((t, i) => {
-      const st = state.mastered[t.id] ? 'mastered' : (i === state.idx ? 'current' : 'new');
-      return `<button class="ap" data-i="${i}" data-state="${st}"
-        title="${esc(t.cn)}" aria-label="第 ${i + 1} 个：${esc(t.cn)}">${i + 1}</button>`;
-    }).join('');
+  function setScope(scope) {
+    if (scope !== 'all' && !CAT_LABEL[scope]) return;
+    state.scope = scope;
+    state.idx = 0;
+    save();
+    renderScopes();
+    renderCard(false);
+    if (!$('viewIndex').hidden) renderRows();
   }
 
   /* ── card ───────────────────────────────────────────────── */
-  function faceFront(t) {
+  function faceFront(t, pos, size) {
     const cat = CATS.find(c => c.key === t.cat);
     const long = t.cn.length >= 6 ? ' headword-cn--long' : '';
     return `
       <div class="face face--front">
         <div class="face-head">
           <span class="cat" data-cat="${t.cat}">${cat.label}</span>
-          <span>第 ${t.slot} / ${PER_DAY}</span>
+          <span class="pos">${pos} <span class="muted">/ ${size}</span></span>
         </div>
         <div class="front-mid">
           <h1 class="headword-cn${long}">${esc(t.cn)}</h1>
@@ -125,41 +130,45 @@
 
   function renderCard(keepFlip) {
     const t = current();
-    const card = $('card');
-    card.innerHTML = faceFront(t) + faceBack(t);
+    const d = deck();
+    $('card').innerHTML = faceFront(t, state.idx + 1, d.length) + faceBack(t);
     setFlip(keepFlip === true);
-    $('progress').textContent = `今日已掌握 ${currentDeck().filter(x => state.mastered[x.id]).length} / ${currentDeck().length}`;
-    $('mark').dataset.on = String(!!state.mastered[t.id]);
-    $('mark').textContent = state.mastered[t.id] ? '已掌握，撤销标记' : '标记已掌握';
+
+    $('progress').textContent = `已掌握 ${masteredIn(d)} / ${d.length}`;
+    $('library').textContent = state.scope === 'all' ? '' : `全库 ${masteredIn(PLAN)} / ${TOTAL}`;
+
+    const on = !!state.mastered[t.id];
+    $('mark').dataset.on = String(on);
+    $('mark').textContent = on ? '已掌握，撤销标记' : '标记已掌握';
+    $('reset').textContent = state.scope === 'all' ? '清空进度' : `清空${CAT_LABEL[state.scope]}进度`;
   }
 
   function setFlip(on) {
     const card = $('card');
+    const t = current();
     card.dataset.flipped = String(on);
     card.setAttribute('aria-pressed', String(on));
     card.setAttribute('aria-label', on
-      ? `${current().cn}，英文 ${current().en}`
-      : `${current().cn}，${CAT_LABEL[current().cat]}。按空格翻面看英文与词根`);
+      ? `${t.cn}，英文 ${t.en}。按空格翻回中文`
+      : `${t.cn}，${CAT_LABEL[t.cat]}。按空格翻面看英文与词根`);
   }
 
   const isFlipped = () => $('card').dataset.flipped === 'true';
   const toggleFlip = () => setFlip(!isFlipped());
 
-  function go(idx, keepFlip) {
-    const deck = currentDeck();
-    state.idx = (idx + deck.length) % deck.length;
+  /* ── 换卡：到末尾直接回到开头，不拦人 ─────────────────────── */
+  function go(idx) {
+    const d = deck();
+    state.idx = ((idx % d.length) + d.length) % d.length;
     save();
-    renderStrip();
-    renderCard(keepFlip);
+    renderCard(false);
   }
 
-  function goDay(d) {
-    state.day = Math.min(Math.max(d, 1), DAYS);
-    state.idx = 0;
-    save();
-    renderRail();
-    renderStrip();
-    renderCard(false);
+  function goToMasteredOrNext() {
+    const d = deck();
+    if (d.every(x => state.mastered[x.id])) return;             // 全组掌握，停在原地
+    const after = d.findIndex((x, i) => i > state.idx && !state.mastered[x.id]);
+    go(after === -1 ? d.findIndex(x => !state.mastered[x.id]) : after);
   }
 
   /* ── events ─────────────────────────────────────────────── */
@@ -168,102 +177,76 @@
     if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggleFlip(); }
   });
   $('flip').addEventListener('click', toggleFlip);
-  $('prev').addEventListener('click', () => go(state.idx - 1, false));
-  $('next').addEventListener('click', () => go(state.idx + 1, false));
+  $('prev').addEventListener('click', () => go(state.idx - 1));
+  $('next').addEventListener('click', () => go(state.idx + 1));
 
   $('mark').addEventListener('click', () => {
     const t = current();
-    if (state.mastered[t.id]) delete state.mastered[t.id];
+    const wasMastered = !!state.mastered[t.id];
+    if (wasMastered) delete state.mastered[t.id];
     else state.mastered[t.id] = Date.now();
     save();
-    renderRail();
-    renderStrip();
     renderCard(isFlipped());
-    if (!state.mastered[t.id]) return;
-    const deck = currentDeck();
-    if (deck.every(x => state.mastered[x.id])) return;
-    const nextIdx = deck.findIndex((x, i) => i > state.idx && !state.mastered[x.id]);
-    go(nextIdx === -1 ? deck.findIndex(x => !state.mastered[x.id]) : nextIdx, false);
+    if (!wasMastered) goToMasteredOrNext();
+    if (!$('viewIndex').hidden) renderRows();
   });
 
   $('reset').addEventListener('click', () => {
-    currentDeck().forEach(t => delete state.mastered[t.id]);
+    deck().forEach(t => delete state.mastered[t.id]);
     save();
-    renderRail();
-    renderStrip();
     renderCard(false);
+    if (!$('viewIndex').hidden) renderRows();
   });
 
-  $('rail').addEventListener('click', e => {
-    const b = e.target.closest('.day');
-    if (b) goDay(Number(b.dataset.day));
-  });
-
-  $('strip').addEventListener('click', e => {
-    const b = e.target.closest('.ap');
-    if (b) go(Number(b.dataset.i), false);
+  $('scopes').addEventListener('click', e => {
+    const b = e.target.closest('.pill');
+    if (b) setScope(b.dataset.s);
   });
 
   document.addEventListener('keydown', e => {
-    if ($('viewIndex').hidden === false) return;
+    if (!$('viewIndex').hidden) return;
     if (e.target.matches('input, textarea')) return;
-    if (e.key === 'ArrowLeft') { e.preventDefault(); go(state.idx - 1, false); }
-    if (e.key === 'ArrowRight') { e.preventDefault(); go(state.idx + 1, false); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); go(state.idx - 1); }
+    if (e.key === 'ArrowRight') { e.preventDefault(); go(state.idx + 1); }
     if (e.key === 'm' || e.key === 'M') $('mark').click();
   });
 
   /* ── index view ─────────────────────────────────────────── */
-  let filter = 'all';
   let query = '';
 
-  function renderFilters() {
-    const counts = CATS.map(c => ({ ...c, n: PLAN.filter(t => t.cat === c.key).length }));
-    const all = `<button class="pill" data-f="all" aria-pressed="${filter === 'all'}">全部 ${PLAN.length}</button>`;
-    $('filters').innerHTML = all + counts.map(c =>
-      `<button class="pill" data-f="${c.key}" aria-pressed="${filter === c.key}">${c.label} ${c.n}</button>`
-    ).join('');
-  }
-
   function matches(t) {
-    if (filter !== 'all' && t.cat !== filter) return false;
+    if (state.scope !== 'all' && t.cat !== state.scope) return false;
     if (!query) return true;
     const hay = [t.cn, t.en, t.term, t.gloss, t.note, t.formula, t.tags.join(' ')].join(' ').toLowerCase();
     return hay.includes(query);
+  }
+
+  function factsOf(t) {
+    return `
+      ${t.formula ? `<div class="fact"><dt>化学式</dt><dd><span class="formula">${esc(t.formula)}</span></dd></div>` : ''}
+      <div class="fact"><dt>词根</dt><dd>
+        <div class="root-line"><span class="chip">${esc(t.lang)}</span>
+        <span class="root-term">${esc(t.term)}</span>
+        <span class="root-gloss">${esc(t.gloss)}</span></div>
+        <p class="muted" style="margin:8px 0 0">${esc(t.note)}</p>
+      </dd></div>
+      ${t.props.map(([k, v]) => `<div class="fact"><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}
+      <div class="fact"><dt>标签</dt><dd class="tags">${t.tags.map(esc).join(' / ')}</dd></div>`;
   }
 
   function renderRows() {
     const list = PLAN.filter(matches);
     $('empty').hidden = list.length > 0;
     $('rows').innerHTML = list.map(t => `
-      <li class="row" data-id="${t.id}">
+      <li class="row" data-id="${t.id}" data-open="false" data-mastered="${!!state.mastered[t.id]}">
         <button class="row-btn" aria-expanded="false">
           <span class="row-cn">${esc(t.cn)}</span>
           <span class="row-en" lang="en">${esc(t.en)}</span>
-          <span class="row-cat">第 ${t.day} 天</span>
+          <span class="row-cat">${CAT_LABEL[t.cat]}</span>
         </button>
-        <div class="row-body">
-          <div class="facts">
-            ${t.formula ? `<div class="fact"><dt>化学式</dt><dd><span class="formula">${esc(t.formula)}</span></dd></div>` : ''}
-            <div class="fact"><dt>词根</dt><dd>
-              <div class="root-line"><span class="chip">${esc(t.lang)}</span>
-              <span class="root-term">${esc(t.term)}</span>
-              <span class="root-gloss">${esc(t.gloss)}</span></div>
-              <p class="muted" style="margin:8px 0 0">${esc(t.note)}</p>
-            </dd></div>
-            ${t.props.map(([k, v]) => `<div class="fact"><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}
-            <div class="fact"><dt>标签</dt><dd class="tags">${t.tags.map(esc).join(' / ')}</dd></div>
-          </div>
-        </div>
+        <div class="row-body"><div class="facts">${factsOf(t)}</div></div>
       </li>`).join('');
   }
-
-  $('filters').addEventListener('click', e => {
-    const b = e.target.closest('.pill');
-    if (!b) return;
-    filter = b.dataset.f;
-    renderFilters();
-    renderRows();
-  });
 
   $('search').addEventListener('input', e => {
     query = e.target.value.trim().toLowerCase();
@@ -286,13 +269,12 @@
     $('viewIndex').hidden = study;
     $('tabStudy').setAttribute('aria-selected', String(study));
     $('tabIndex').setAttribute('aria-selected', String(!study));
-    if (!study) { renderFilters(); renderRows(); }
+    if (!study) renderRows();
   }
   $('tabStudy').addEventListener('click', () => setView('study'));
   $('tabIndex').addEventListener('click', () => setView('index'));
 
   /* ── boot ───────────────────────────────────────────────── */
-  renderRail();
-  renderStrip();
+  renderScopes();
   renderCard(false);
 })();
