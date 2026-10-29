@@ -6,14 +6,16 @@
 
 ## 内容
 
-70 词，四类轮转交错，相邻两张必属不同类，随手翻都是「矿物 + 机器零件 + 化学式 + 指标」的混合：
+1000 词，四类轮转交错，相邻两张必属不同类，随手翻都是「矿物 + 机器零件 + 化学式 + 指标」的混合：
 
 | 分类 | 词数 | 例 |
-|---|---|---|
-| 物料 | 24 | 石英 quartz、方解石 calcite、碳化硅 silicon carbide |
-| 部件 | 24 | 分级轮 classifier wheel、磨辊 grinding roller、溜槽 chute |
-| 化学品 | 12 | SiO₂、NaOH、TiO₂、硬脂酸 stearic acid |
-| 物性 | 10 | 莫氏硬度 Mohs hardness、解理 cleavage、筛余 sieve residue |
+|---|---:|---|
+| 物料 | 332 | 石英 quartz、铬铁矿 chromite、石英砂 silica sand |
+| 部件 | 256 | 分级轮 classifier wheel、耐磨颚式破碎机 wear-resistant jaw crusher |
+| 化学品 | 162 | 二氧化硅 silicon dioxide、硫酸钙 calcium sulfate、氢氧化钠 sodium hydroxide |
+| 物性 | 250 | 莫氏硬度 Mohs hardness、粒度 particle size、磨机排料功率 mill discharge power |
+
+扩充词条覆盖矿物与工艺物料、破碎/粉磨/分级设备及其变体、常见无机化学品和过程测量指标。词条按类目交错排列，范围胶囊只用于筛选，不设每日学习配额。
 
 词根照实写，有争议就写争议：quartz 一般借自西斯拉夫语 *tvьrdъ、sulfur 词源未定、auger 来自「a nauger → an auger」的误拆分、kaolin 是汉语「高岭」进国际术语、camera 的「相机」义是 camera obscura 的缩略。德语 / 阿拉伯语 / 古诺斯语 / 人名地名的来源不硬套拉丁词根。
 
@@ -34,7 +36,7 @@
 index.html              单页应用
 assets/styles.css       设计系统与组件
 assets/app.js           词序、翻转、进度
-data/terms.js           70 词条，唯一真源
+data/terms.js           1000 词条，唯一真源
 db/schema.sql           表 + 视图（SQLite 方言）
 db/seed.sql             生成的种子数据
 scripts/build-seed.mjs  校验词条并重生成 SQL
