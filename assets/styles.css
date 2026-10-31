@@ -10,6 +10,7 @@
   --steel: #9aa39c;
   --rule: #2f3533;
   --ore: #d4704e;
+  --word: #ffd84d;      /* 词头黄：只给要背的那个词 */
   --edge: rgba(255, 255, 255, .09);
 
   --sans: "Archivo", "Helvetica Neue", Arial, sans-serif;
@@ -165,6 +166,7 @@ body {
   padding: 20px 0 24px;
 }
 .headword-cn {
+  color: var(--word);
   font-size: 54px;
   font-weight: 600;
   line-height: 1.16;
@@ -188,6 +190,7 @@ body {
 
 /* back */
 .headword-en {
+  color: var(--word);
   font-family: var(--sans);
   font-size: 36px;
   font-weight: 600;
