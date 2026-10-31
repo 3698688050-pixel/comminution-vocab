@@ -176,7 +176,6 @@
   $('card').addEventListener('keydown', e => {
     if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggleFlip(); }
   });
-  $('flip').addEventListener('click', toggleFlip);
   $('prev').addEventListener('click', () => go(state.idx - 1));
   $('next').addEventListener('click', () => go(state.idx + 1));
 

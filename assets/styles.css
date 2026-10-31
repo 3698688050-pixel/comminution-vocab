@@ -1,14 +1,16 @@
-/* 粉碎词汇 — visual system
-   ground  粉料灰绿    card  抛光样板白   ink  石墨黑
+/* 粉碎词汇 — visual system（深色）
+   ground  粉料暗绿    card  抛光样板     ink  石墨白
    steel   钢灰        rule  刻线        ore  赤铁矿红（唯一强调色）
+   关系照旧：卡片靠明度差浮起，不用阴影；赤铁矿红只标「已学会」。
 */
 :root {
-  --ground: #e7e9e4;
-  --card: #f8f9f6;
-  --ink: #161b19;
-  --steel: #6c7570;
-  --rule: #c6cac2;
-  --ore: #8e3a24;
+  --ground: #131614;
+  --card: #1b1f1d;
+  --ink: #e8eae5;
+  --steel: #9aa39c;
+  --rule: #2f3533;
+  --ore: #d4704e;
+  --edge: rgba(255, 255, 255, .09);
 
   --sans: "Archivo", "Helvetica Neue", Arial, sans-serif;
   --cjk: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
@@ -18,6 +20,14 @@
 }
 
 * { box-sizing: border-box; }
+
+html { color-scheme: dark; }
+
+::selection { background: var(--ink); color: var(--ground); }
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-thumb { background: var(--rule); }
+::-webkit-scrollbar-track { background: transparent; }
 
 html, body {
   margin: 0;
@@ -94,7 +104,7 @@ body {
   transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
 }
 .pill:hover { color: var(--ink); border-color: var(--steel); }
-.pill[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #f2f3ef; }
+.pill[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--ground); }
 
 /* ── specimen card ───────────────────────────────────────── */
 .deck { perspective: 1600px; margin: 6px 0 18px; }
@@ -115,7 +125,7 @@ body {
   display: flex;
   flex-direction: column;
   background: var(--card);
-  border: 1px solid rgba(22, 27, 25, 0.09);
+  border: 1px solid var(--edge);
   border-radius: var(--r-card);
   padding: 26px 28px 22px;
   backface-visibility: hidden;
@@ -229,7 +239,7 @@ body {
 /* ── controls ────────────────────────────────────────────── */
 .controls {
   display: grid;
-  grid-template-columns: 1fr 1.2fr 1fr;
+  grid-template-columns: 1fr 1.35fr;
   gap: 8px;
 }
 .btn {
@@ -248,9 +258,9 @@ body {
 .btn--primary {
   background: var(--ink);
   border-color: var(--ink);
-  color: #f2f3ef;
+  color: var(--ground);
 }
-.btn--primary:hover { background: #232a27; border-color: #232a27; }
+.btn--primary:hover { background: #d3d7cf; border-color: #d3d7cf; }
 
 .pos { font-variant-numeric: tabular-nums; }
 .stats { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; }
@@ -294,6 +304,7 @@ body {
   border-radius: var(--r-btn);
 }
 .search::placeholder { color: var(--steel); }
+.search { caret-color: var(--ore); }
 .search:focus { outline: 2px solid var(--ore); outline-offset: 1px; border-color: transparent; }
 
 .rows { list-style: none; margin: 0; padding: 0; }
