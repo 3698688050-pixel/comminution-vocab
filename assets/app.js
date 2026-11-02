@@ -213,52 +213,65 @@
   /* ── index view ─────────────────────────────────────────── */
   let query = '';
 
+  // 词表搜索只认中文与英文两列：全库检索，不受范围胶囊收窄
   function matches(t) {
-    if (state.scope !== 'all' && t.cat !== state.scope) return false;
     if (!query) return true;
-    const hay = [t.cn, t.en, t.term, t.gloss, t.note, t.formula, t.tags.join(' ')].join(' ').toLowerCase();
-    return hay.includes(query);
+    return (t.cn + ' ' + t.en).toLowerCase().includes(query);
   }
 
-  function factsOf(t) {
-    return `
-      ${t.formula ? `<div class="fact"><dt>化学式</dt><dd><span class="formula">${esc(t.formula)}</span></dd></div>` : ''}
-      <div class="fact"><dt>词根</dt><dd>
-        <div class="root-line"><span class="chip">${esc(t.lang)}</span>
-        <span class="root-term">${esc(t.term)}</span>
-        <span class="root-gloss">${esc(t.gloss)}</span></div>
-        <p class="muted" style="margin:8px 0 0">${esc(t.note)}</p>
-      </dd></div>
-      ${t.props.map(([k, v]) => `<div class="fact"><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}
-      <div class="fact"><dt>标签</dt><dd class="tags">${t.tags.map(esc).join(' / ')}</dd></div>`;
+  // 防抖：输入停顿 200ms 再重排，1000 行不必每敲一键重建
+  // 注意：事件对象在派发结束后会失效，值必须先取出再交给定时器
+  function debounce(fn, ms) {
+    let timer;
+    return function (e) {
+      const val = e.target.value;
+      clearTimeout(timer);
+      timer = setTimeout(() => fn(val), ms);
+    };
+  }
+
+  // 命中高亮：先切分原文，再逐段转义，避免正则注入
+  function markKw(text, words) {
+    if (!query || !words.some(w => String(w).toLowerCase().includes(query))) return esc(text);
+    return String(text).split(query).map(part => esc(part)).join(`<mark>${esc(query)}</mark>`);
+  }
+
+  // 点击词表某行：切到背词视图并定位到该词
+  function goToTerm(id) {
+    const d = deck();
+    const i = d.findIndex(t => t.id === id);
+    if (i < 0) return;
+    state.idx = i;
+    save();
+    setView('study');
+    renderCard(false);
   }
 
   function renderRows() {
     const list = PLAN.filter(matches);
+    const hit = !!query;
     $('empty').hidden = list.length > 0;
+    $('count').hidden = !hit;
+    $('count').textContent = hit ? `找到 ${list.length} 个词` : '';
     $('rows').innerHTML = list.map(t => `
-      <li class="row" data-id="${t.id}" data-open="false" data-mastered="${!!state.mastered[t.id]}">
-        <button class="row-btn" aria-expanded="false">
-          <span class="row-cn">${esc(t.cn)}</span>
-          <span class="row-en" lang="en">${esc(t.en)}</span>
+      <li class="row" data-id="${t.id}" data-mastered="${!!state.mastered[t.id]}">
+        <button class="row-btn">
+          <span class="row-cn">${markKw(t.cn, [t.cn])}</span>
+          <span class="row-en" lang="en">${markKw(t.en, [t.en])}</span>
           <span class="row-cat">${CAT_LABEL[t.cat]}</span>
         </button>
-        <div class="row-body"><div class="facts">${factsOf(t)}</div></div>
       </li>`).join('');
   }
 
-  $('search').addEventListener('input', e => {
-    query = e.target.value.trim().toLowerCase();
+  $('search').addEventListener('input', debounce(val => {
+    query = val.trim().toLowerCase();
     renderRows();
-  });
+  }, 200));
 
   $('rows').addEventListener('click', e => {
     const btn = e.target.closest('.row-btn');
     if (!btn) return;
-    const row = btn.parentElement;
-    const open = row.dataset.open === 'true';
-    row.dataset.open = String(!open);
-    btn.setAttribute('aria-expanded', String(!open));
+    goToTerm(btn.parentElement.dataset.id);
   });
 
   /* ── view switch ────────────────────────────────────────── */
