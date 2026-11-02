@@ -230,10 +230,20 @@
     };
   }
 
-  // 命中高亮：先切分原文，再逐段转义，避免正则注入
+  // 命中高亮：按小写索引定位，再切回原文切片，避免正则注入且大小写不敏感
   function markKw(text, words) {
-    if (!query || !words.some(w => String(w).toLowerCase().includes(query))) return esc(text);
-    return String(text).split(query).map(part => esc(part)).join(`<mark>${esc(query)}</mark>`);
+    const raw = String(text);
+    if (!query || !words.some(w => String(w).toLowerCase().includes(query))) return esc(raw);
+    const lower = raw.toLowerCase();
+    const parts = [];
+    let from = 0;
+    for (let at = lower.indexOf(query); at !== -1; at = lower.indexOf(query, at + query.length)) {
+      parts.push(esc(raw.slice(from, at)));
+      parts.push(`<mark>${esc(raw.slice(at, at + query.length))}</mark>`);
+      from = at + query.length;
+    }
+    parts.push(esc(raw.slice(from)));
+    return parts.join('');
   }
 
   // 点击词表某行：切到背词视图并定位到该词
