@@ -108,19 +108,19 @@ body {
 .pill[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--ground); }
 
 /* ── specimen card ───────────────────────────────────────── */
-.deck { perspective: 1600px; margin: 6px 0 18px; }
+.deck { margin: 6px 0 18px; }
 
 .card {
   position: relative;
   display: grid;
-  min-height: 388px;
-  transform-style: preserve-3d;
-  transition: transform 520ms cubic-bezier(.22, .61, .24, 1);
+  height: clamp(360px, calc(100svh - 300px), 520px);
   cursor: pointer;
   border-radius: var(--r-card);
 }
-.card[data-flipped="true"] { transform: rotateX(-180deg); }
-
+/* 翻面：不依赖 3D 旋转与 backface-visibility（WebKit 上有组合会失效，
+   表现为背面文字上下颠倒地透出来），直接切换两面的显隐 */
+.card[data-flipped="true"] .face--front { display: none; }
+.card:not([data-flipped="true"]) .face--back { display: none; }
 .face {
   grid-area: 1 / 1;
   display: flex;
@@ -129,11 +129,9 @@ body {
   border: 1px solid var(--edge);
   border-radius: var(--r-card);
   padding: 26px 28px 22px;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
   overflow: hidden;
 }
-.face--back { transform: rotateX(180deg); }
+
 
 .card:focus-visible { outline: 2px solid var(--ore); outline-offset: 3px; }
 
@@ -361,7 +359,7 @@ body {
   .headword-cn { font-size: 42px; }
   .headword-cn--long { font-size: 32px; }
   .headword-en { font-size: 27px; }
-  .card { min-height: 340px; }
+  .card { height: clamp(340px, calc(100svh - 300px), 460px); }
   .face { padding: 20px 18px 16px; }
   .scopes { padding: 12px 0 14px; margin-bottom: 18px; }
   .row-btn { grid-template-columns: 78px 1fr auto; gap: 8px; }
