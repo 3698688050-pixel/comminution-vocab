@@ -13,11 +13,19 @@ const NL = String.fromCharCode(10);
 const lines = src.split(NL);
 
 const D = {
-  ...require('/tmp/mineral-head.js'),
-  ...require('/tmp/mineral-b.js'),
-  ...require('/tmp/mineral-c.js')
+  ...require('./data/mineral-head.js'),
+  ...require('./data/mineral-b.js'),
+  ...require('./data/mineral-c.js')
 };
 delete D.montmorillonite2;
+
+/* 数据自检：缺字段或数量不对就不要往下写文件 */
+{
+  const need = ['cn', 'en', 'lang', 'term', 'gloss', 'note', 'density', 'cleavage', 'tag', 'feature']; // formula 对岩石类为空，不算缺
+  const bad = Object.entries(D).filter(([, d]) => need.some(k => !d[k]));
+  if (bad.length) throw new Error('矿物数据缺字段：' + bad.map(([k]) => k).join(', '));
+  if (Object.keys(D).length !== 77) throw new Error('矿物条数应为 77，实际 ' + Object.keys(D).length);
+}
 
 const q = s => "'" + String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'";
 const arr = a => '[' + a.map(x => q(x)).join(', ') + ']';
@@ -63,9 +71,10 @@ for (let i = 0; i < lines.length; i++) {
 }
 
 /* 删掉因合并产生的连续空行与孤立分类注释 */
+const cleaned0 = out.map(l => (/^\s*\/\* ── (部件|化学品|物性)/.test(l) ? '    ' + l.trim() : l));
 const cleaned = [];
-for (let i = 0; i < out.length; i++) {
-  const cur = out[i];
+for (let i = 0; i < cleaned0.length; i++) {
+  const cur = cleaned0[i];
   const prev = cleaned[cleaned.length - 1];
   if (/^\s*$/.test(cur) && prev !== undefined && /^\s*$/.test(prev)) continue;
   cleaned.push(cur);

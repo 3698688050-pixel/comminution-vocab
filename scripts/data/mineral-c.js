@@ -1,0 +1,12 @@
+// 77 条矿物精编数据（片段 3/4）
+module.exports = {
+  elbaite: { cn: '锂电气石', en: 'Elbaite', formula: 'Na(Li,Al)₃Al₆(BO₃)₃Si₆O₁₈(OH)₄', lang: '地名', term: 'Elba', gloss: '意大利厄尔巴岛', note: '以意大利 Elba 岛命名；电气石族中含锂的端元，是锂、硼的综合来源，晶体常呈彩色环带，硬度高', density: '3.0–3.1 g/cm³', cleavage: '差，无清楚解理', tag: '锂矿石', feature: '硬度高，磨蚀性偏强' },
+  tourmaline: { cn: '电气石', en: 'Tourmaline', lang: '僧伽罗语', formula: '（复杂硼硅酸盐）', term: 'tōramalli', gloss: '（僧伽罗语，指该宝石）', note: '经荷兰语进入欧洲语言，源自僧伽罗语 tōramalli；具压电与热电性，摩擦可生电，故中文称「电气石」，工业用作压电材料与滤料', density: '3.0–3.2 g/cm³', cleavage: '差，贝壳状断口', tag: '硼硅酸盐', feature: '硬度高、无解理，破碎后颗粒多棱角' },
+  garnet: { cn: '石榴子石', en: 'Garnet', lang: '拉丁语', formula: '（复杂岛状硅酸盐）', term: 'granatus', gloss: '像石榴籽（granatum）', note: '拉丁 granatus「多籽」，因晶体形态像石榴籽得名；硬度高、韧性好，是天然磨料与高压水刀砂的首选，也作重选介质', density: '3.6–4.3 g/cm³', cleavage: '无解理，贝壳状断口', tag: '磨料', feature: '高硬且韧性好，耐磨料主力' },
+  andalusite: { cn: '红柱石', en: 'Andalusite', lang: '地名', formula: 'Al₂SiO₅', term: 'Andalucía', gloss: '西班牙安达卢西亚', note: '以西班牙 Andalucía 命名；低压下稳定的铝硅酸盐，煅烧后转为莫来石并体积膨胀，是耐火材料的重要原料', density: '3.1–3.3 g/cm³', cleavage: '一组清楚解理', tag: '耐火原料', feature: '煅烧莫来石化，体积膨胀需预留' },
+  cordierite: { cn: '堇青石', en: 'Cordierite', lang: '人名', formula: '(Mg,Fe)₂Al₄Si₅O₁₈', lang2: '', term: 'Cordier', gloss: '法国地质学家 Louis Cordier', note: '以法国地质学家 Louis Cordier 命名；热膨胀系数极低，是蜂窝陶瓷载体与耐热玻璃陶瓷的核心晶相', density: '2.5–2.8 g/cm³', cleavage: '三组差不完全解理', tag: '低膨胀晶相', feature: '强度中上，破碎后粒形较规则' },
+  zircon: { cn: '锆石', en: 'Zircon', lang: '阿拉伯语', formula: 'ZrSiO₄', lang2: '', term: 'zarqūn', gloss: '朱红（زرقون）', note: '阿拉伯语 zarqūn「朱红」（一说经波斯语 zargun「金色」）；是最主要的锆矿石，耐高温、耐腐蚀，也因含铀钍而需注意放射性', density: '4.6–4.7 g/cm³', cleavage: '两组差解理', tag: '锆矿石', feature: '高硬难磨，含微量放射性核素' },
+  beryl: { cn: '绿柱石', en: 'Beryl', lang: '希腊语', formula: 'Be₃Al₂Si₆O₁₈', term: 'beryllos', gloss: '（古希腊语，指绿宝石）', note: '希腊 beryllos 指绿宝石，铍（beryllium）一词即由此而来；是铍的主要来源，宝石级的绿柱石即祖母绿与海蓝宝', density: '2.6–2.8 g/cm³', cleavage: '差，贝壳状断口', tag: '铍矿石', feature: '硬度较高，含铍粉尘需严格防护' },
+  corundum: { cn: '刚玉', en: 'Corundum', lang: '泰米尔语', formula: 'Al₂O₃', term: 'kuruvindam', gloss: '（泰米尔语，指该矿物）', note: '经葡萄牙语 corindon 来自泰米尔语；莫氏硬度 9 的标准矿物，是天然磨料的主体，红宝石与蓝宝石同为刚玉的宝石变种', density: '3.9–4.1 g/cm³', cleavage: '无解理，贝壳状或参差状断口', tag: '磨料 / 铝矿石', feature: '极高硬强磨蚀，衬板磨损的典型来源' },
+  montmorillonite2: { cn: '（占位）', en: '', formula: '', lang: '', term: '', gloss: '', note: '', density: '', cleavage: '', tag: '', feature: '' }
+};
