@@ -52,6 +52,27 @@
   const $ = id => document.getElementById(id);
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
+  // 莫氏硬度：唯一数据源是 props 里的「莫氏硬度」一行；无此行的物料不显示刻度
+  const HARD_RE = /^(\d+(?:\.\d+)?)/;
+  function hardness(t) {
+    const row = t.cat === 'material' && t.props.find(p => p[0] === '莫氏硬度');
+    const m = row && row[1].match(HARD_RE);
+    return m ? { v: parseFloat(m[1]), raw: row[1] } : null;
+  }
+
+  // 十级刻度尺：亮到该物料所处位置，用来一眼判断软硬
+  function mohsScale(t) {
+    const h = hardness(t);
+    if (!h) return '';
+    const bars = Array.from({ length: 10 }, (_, i) =>
+      `<i class="${i + 1 <= Math.round(h.v) ? 'on' : ''}"></i>`).join('');
+    return `<div class="mohs" aria-label="莫氏硬度 ${h.raw}">
+        <span class="mohs-key">MOH</span>
+        <span class="mohs-v">${h.v.toFixed(1)}</span>
+        <span class="mohs-bars">${bars}</span>
+      </div>`;
+  }
+
   const scoped = () => (state.scope === 'all' ? PLAN : PLAN.filter(t => t.cat === state.scope));
   const deck = () => scoped();
   const current = () => { const d = deck(); return d[Math.min(state.idx, d.length - 1)] || d[0]; };
@@ -88,6 +109,7 @@
         </div>
         <div class="front-mid">
           <h1 class="headword-cn${long}">${esc(t.cn)}</h1>
+          ${mohsScale(t)}
           <p class="front-note">${cat.prompt}，看完再翻面。</p>
         </div>
         <div class="front-foot">
@@ -268,7 +290,8 @@
         <button class="row-btn">
           <span class="row-cn">${markKw(t.cn, [t.cn])}</span>
           <span class="row-en" lang="en">${markKw(t.en, [t.en])}</span>
-          <span class="row-cat">${CAT_LABEL[t.cat]}</span>
+          <span class="row-cat">${CAT_LABEL[t.cat]}${
+            hardness(t) ? `<span class="row-mohs">${hardness(t).v.toFixed(1)}</span>` : ''}</span>
         </button>
       </li>`).join('');
   }
