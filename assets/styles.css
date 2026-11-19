@@ -89,6 +89,9 @@ body {
 }
 .view-btn[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ore); }
 .view-btn:hover { color: var(--ink); }
+/* 「痕迹」是页面跳转不是切换视图，只在字上一致，不给选中态 */
+.view-link { text-decoration: none; display: inline-block; }
+.view-link:focus-visible { outline: 2px solid var(--ore); outline-offset: 3px; }
 
 /* ── scope row (收窄视野，不是限额) ─────────────────────── */
 .scopes {

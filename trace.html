@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>粉碎词汇 · 学习痕迹</title>
+<style>
+/* Hallmark · Linear 复刻 · #08090A near-black, one Inter, white says it and grey explains */
+:root{
+  --ground:#08090A;
+  --ink:#F7F8F8;
+  --ink-2:#8A8F98;
+  --line:#23252A;
+  --line-2:#191B1F;
+  --violet:#5E6AD2;
+  --violet-halo:rgba(94,106,210,.35);
+  --ink-3:#62666D; --dot-line:#303338;
+  --av-bg:#1B1D22; --av-ok-bg:#141A16; --av-ok-line:#2D3A31;
+  --ok-text:#9FD3B4; --ok-line:#26382C;
+  --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Helvetica Neue","Noto Sans SC",sans-serif;
+  --latin:"Inter",var(--sans);
+}
+html,body{overflow-x:clip;background:var(--ground)}
+*{box-sizing:border-box}
+body{margin:0;color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.55;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+  font-synthesis-weight:none;font-synthesis-style:none;
+  font-feature-settings:"cv11","ss01";letter-spacing:-0.006em}
+::selection{background:var(--violet-halo);color:var(--ink)}
+:focus-visible{outline:2px solid var(--violet);outline-offset:2px;border-radius:4px}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ── 顶栏：贴边、低矮、字小 ── */
+.nav{height:52px;display:flex;align-items:center;gap:24px;padding:0 22px;
+  border-bottom:1px solid var(--line-2)}
+.brand{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;
+  letter-spacing:-.01em}
+.brand .mk{width:15px;height:15px;display:block}
+.nav .links{display:flex;gap:18px;margin-left:8px;font-size:13px;color:var(--ink-2)}
+.nav .links span{cursor:default}
+
+/* ── Hero：大留白，结论一句，解释一行 ── */
+main{max-width:720px;margin:0 auto;padding:0 22px}
+.hero{padding:64px 0 40px}
+.hero h1{font-size:32px;line-height:1.22;font-weight:500;letter-spacing:-.012em;
+  margin:0;text-wrap:balance;max-width:15em}
+.hero .expl{margin:16px 0 0;font-size:14px;line-height:1.6;color:var(--ink-2);max-width:36em}
+.hero .expl b{color:var(--ink);font-weight:400}
+
+/* ── 概览：不是四格数据墙，是「一句结论 + 三行解释」 ── */
+.summary{border-top:1px solid var(--line);padding:22px 0 26px}
+.summary .lead{font-size:20px;font-weight:400;letter-spacing:-.015em;margin:0 0 4px}
+.summary .lead .n{color:var(--ink);font-variant-numeric:tabular-nums}
+.summary dl{margin:10px 0 0;display:grid;grid-template-columns:1fr;gap:0}
+.summary dl div{display:flex;justify-content:space-between;align-items:baseline;
+  padding:7px 0;font-size:13.5px;border-top:1px solid var(--line-2)}
+.summary dl div:first-child{border-top:none}
+.summary dt{color:var(--ink-2)}
+.summary dd{margin:0;color:var(--ink);font-variant-numeric:tabular-nums}
+
+/* ── 一周：一条极细的线，圆点，无柱 ── */
+section.block{padding:26px 0 8px;border-top:1px solid var(--line)}
+h2{font-size:13px;font-weight:400;color:var(--ink-2);margin:0 0 18px;letter-spacing:-.004em}
+.rail{position:relative;height:52px}
+.rail .line{position:absolute;left:0;right:0;top:23px;height:1px;background:var(--line)}
+.rail .pts{display:grid;grid-template-columns:repeat(7,1fr);position:relative}
+.rail .p{position:relative;text-align:center;height:52px}
+.rail .p .dot{position:absolute;left:50%;top:20px;width:7px;height:7px;margin-left:-3.5px;
+  border-radius:50%;background:var(--ground);box-shadow:inset 0 0 0 1px var(--dot-line)}
+.rail .p.has .dot{background:var(--ink-2);box-shadow:none;width:8px;height:8px;margin-left:-4px;top:19px}
+.rail .p.now .dot{background:var(--ink);box-shadow:0 0 0 3px var(--violet-halo)}
+.rail .p .v{position:absolute;left:0;right:0;top:0;font-size:11.5px;color:var(--ink);
+  font-variant-numeric:tabular-nums;height:14px}
+.rail .p .d{position:absolute;left:0;right:0;bottom:2px;font-size:11px;color:var(--ink-3)}
+
+/* ── 记录：像 Linear 的 Activity 流，头像位用色点 ── */
+.log{margin:0;padding:0;list-style:none;border-top:1px solid var(--line-2)}
+.log li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:start;
+  padding:13px 0;border-bottom:1px solid var(--line-2)}
+.log .av{width:16px;height:16px;margin-top:3px;border-radius:4px;
+  background:var(--av-bg);box-shadow:inset 0 0 0 1px var(--line)}
+.log .av.k{box-shadow:inset 0 0 0 1px var(--av-ok-line);background:var(--av-ok-bg)}
+.log .body{min-width:0}
+.log .t{font-size:14px;color:var(--ink);letter-spacing:-.006em}
+.log .t b{font-weight:400}
+.log .t .meta{color:var(--ink-2);font-size:12.5px;margin-left:4px}
+.log .sub{display:block;margin-top:2px;font-size:12.5px;color:var(--ink-2);line-height:1.5}
+.log .sub .num{font-variant-numeric:tabular-nums}
+.log .st{font-size:11.5px;white-space:nowrap;margin-top:4px;padding:1px 7px;border-radius:999px;
+  box-shadow:inset 0 0 0 1px var(--line);color:var(--ink-2)}
+.log .st.k{color:var(--ok-text);box-shadow:inset 0 0 0 1px var(--ok-line)}
+.empty{padding:18px 0;color:var(--ink-2);font-size:13.5px;border-bottom:1px solid var(--line-2)}
+
+/* ── 唯一的实心按钮 ── */
+.cta{display:flex;justify-content:center;margin:34px 0 0}
+.cta a{display:inline-block;padding:9px 20px;border-radius:999px;background:var(--ink);
+  color:var(--ground);font-size:14px;font-weight:500;letter-spacing:.01em;text-decoration:none;
+  transition:opacity 140ms ease-out}
+.cta a:hover{opacity:.88}
+.cta a:active{transform:scale(.98)}
+
+.foot{margin:34px 0 0;padding:18px 0 44px;border-top:1px solid var(--line-2);
+  color:var(--ink-3);font-size:12px;line-height:1.7}
+.foot span{display:block}
+</style>
+<script src="assets/trace-config.js"></script>
+<script src="data/terms.js"></script>
+</head>
+<body>
+<nav class="nav">
+  <span class="brand">
+    <svg class="mk" viewBox="0 0 16 16" aria-hidden="true" fill="none">
+      <circle cx="8" cy="8" r="7" stroke="#F7F8F8" stroke-width="1.2"/>
+      <circle cx="8" cy="8" r="2.4" fill="#F7F8F8"/>
+    </svg>粉碎词汇</span>
+  <span class="links"><a href="index.html">背词</a><a href="trace.html">痕迹</a></span>
+</nav>
+
+<main>
+  <header class="hero">
+    <h1>今天翻了 <span id="hseen">4</span> 个词，其中 <span id="hknown">3</span> 个标了掌握</h1>
+    <p class="expl" id="expl">覆盖矿物、设备部件、化学品与物性指标。全库 <b id="htotal">407</b> 词，进度只存在这台手机上。</p>
+  </header>
+
+  <section class="summary">
+    <p class="lead">已掌握 <span class="n" id="mnum">3</span> / <span class="n" id="mall">407</span></p>
+    <dl>
+      <div><dt>翻面次数</dt><dd id="flip">5</dd></div>
+      <div><dt>连续记录</dt><dd><span id="streak">1</span> 天</dd></div>
+      <div><dt>本周累计翻过</dt><dd><span id="wsum">4</span> 个词</dd></div>
+    </dl>
+  </section>
+
+  <section class="block">
+    <h2>近七天</h2>
+    <div class="rail"><div class="line"></div><div class="pts" id="rail"></div></div>
+  </section>
+
+  <section class="block">
+    <h2 id="daylabel">今天翻过的词</h2>
+    <ul class="log" id="log"><li class="empty">载入中</li></ul>
+  </section>
+
+  <div class="cta"><a href="index.html">回去接着背</a></div>
+  <p class="foot">
+    <span>记录写入本机数据库，服务停掉再启动仍在。</span>
+    <span id="errbox">页面每 20 秒自动刷新一次。</span>
+  </p>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function hm(iso){
+  if(!iso) return '';
+  const d = new Date(iso);
+  return isNaN(d) ? String(iso).slice(11,16)
+    : String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+}
+function ymd(d){
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' +
+         String(d.getDate()).padStart(2,'0');
+}
+function daysAgo(n){ const d = new Date(); d.setDate(d.getDate() - n); return ymd(d); }
+
+const CFG = window.VOCAB_TRACE || {};
+async function sb(path, params){
+  const q = params ? '?' + new URLSearchParams(params).toString() : '';
+  const r = await fetch(CFG.url + '/rest/v1/' + path + q, {
+    headers: { apikey: CFG.key, Authorization: 'Bearer ' + CFG.key }
+  });
+  if(!r.ok) throw new Error('HTTP ' + r.status);
+  return r.json();
+}
+
+// 词条中文名来自本地词库 terms.js
+const META = {};
+(window.TERMS || []).forEach(t => { META[t.id] = t; });
+
+function rail(list, today){
+  $('rail').innerHTML = list.map(w => `
+    <div class="p ${w.seen ? 'has' : ''} ${w.day === today ? 'now' : ''}">
+      <span class="v">${w.seen || ''}</span>
+      <span class="dot"></span>
+      <span class="d">${w.day.slice(5).replace('-','/')}</span>
+    </div>`).join('');
+}
+
+async function load(){
+  try{
+    const today = ymd(new Date());
+    const weekStart = daysAgo(6);
+
+    const [weekRows, allRows] = await Promise.all([
+      sb('review_log', {select:'term_id,result,day', day:'gte.'+weekStart, limit:'20000'}),
+      sb('review_log', {select:'term_id,result,at', order:'at.desc', limit:'4000'})
+    ]);
+
+    const todayRows = weekRows.filter(r => r.day === today);
+    const seenToday = new Set(todayRows.map(r => r.term_id));
+    const knownToday = new Set(todayRows.filter(r => r.result === 'known').map(r => r.term_id));
+    const flips = todayRows.filter(r => r.result === 'flip').length;
+
+    const byDay = {};
+    weekRows.forEach(r => (byDay[r.day] = byDay[r.day] || new Set()).add(r.term_id));
+    const week = [];
+    for(let i = 6; i >= 0; i--){
+      const d = daysAgo(i);
+      week.push({day: d, seen: (byDay[d] ? byDay[d].size : 0)});
+    }
+
+    // 每个词最后一条是 known 即算掌握
+    const last = {}, times = {}, lastAt = {};
+    allRows.forEach(r => {
+      if(!(r.term_id in last)){ last[r.term_id] = r.result; lastAt[r.term_id] = r.at; }
+      times[r.term_id] = (times[r.term_id] || 0) + 1;
+    });
+    const mastered = Object.values(last).filter(v => v === 'known').length;
+    const total = (window.TERMS || []).length || 407;
+
+    const days = Object.keys(byDay).sort().reverse();
+    let streak = 0;
+    for(let i = 0; i < days.length; i++){
+      const expect = daysAgo(i);
+      if(days[i] === expect) streak++;
+      else if(i === 0 && days[0] === daysAgo(1)){ streak++; continue; }
+      else break;
+    }
+
+    $('hseen').textContent = seenToday.size;
+    $('hknown').textContent = knownToday.size;
+    $('htotal').textContent = total;
+    $('mnum').textContent = mastered;
+    $('mall').textContent = total;
+    $('flip').textContent = flips;
+    $('streak').textContent = streak;
+    $('wsum').textContent = week.reduce((a,w)=>a+w.seen,0);
+    $('daylabel').textContent = today + ' 翻过的词';
+    rail(week, today);
+
+    const rows = [...seenToday].map(id => {
+      const m = META[id] || {};
+      return {id, cn: m.cn || id, en: m.en || '', at: lastAt[id],
+              known: last[id] === 'known', times: times[id]};
+    }).filter(x => x.at).sort((a,b) => b.at.localeCompare(a.at));
+
+    $('log').innerHTML = rows.length ? rows.map(x => `
+      <li>
+        <span class="av ${x.known ? 'k' : ''}"></span>
+        <span class="body">
+          <span class="t"><b>${esc(x.cn)}</b><span class="meta">${esc(x.en)} · ${hm(x.at)}</span></span>
+          <span class="sub">${x.known ? '标记为已掌握' : '翻面后仍需再学'} · 看过 <span class="num">${x.times}</span> 次</span>
+        </span>
+        <span class="st ${x.known ? 'k' : ''}">${x.known ? '掌握' : '再学'}</span>
+      </li>`).join('')
+      : '<li class="empty">今天还没开始，去翻几张卡片吧</li>';
+  }catch(e){
+    $('log').innerHTML = '<li class="empty">读取失败：' + esc(e.message) + '</li>';
+  }
+}
+load();
+</script>
+</body>
+</html>
