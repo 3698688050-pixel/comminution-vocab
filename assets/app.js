@@ -49,6 +49,44 @@
   const state = load();
   const save = () => localStorage.setItem(STORE_KEY, JSON.stringify(state));
 
+  /* ── 痕迹上报 ──────────────────────────────────────────────
+     线上是纯静态页，没有服务端可选。所以每条痕迹先写进浏览器的待传队列，
+     打开本机痕迹页时（同源 127.0.0.1 或 http://<本机>:8770）再一次性补传。
+     这样离线、断网、GitHub 页面本身都不会丢记录。 */
+  const QUEUE_KEY = STORE_KEY + ':queue';
+  const readQ = () => { try { return JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]'); } catch (e) { return []; } };
+  const writeQ = q => { try { localStorage.setItem(QUEUE_KEY, JSON.stringify(q.slice(-2000))); } catch (e) {} };
+
+  function trace(id, result) {
+    const q = readQ();
+    q.push({ id, result, at: new Date().toISOString() });
+    writeQ(q);
+    // 同源能通就立刻发出去（本机服务在跑时）
+    sendPending();
+  }
+
+  let sending = false;
+  function sendPending() {
+    if (sending) return;
+    const q = readQ();
+    if (!q.length) return;
+    sending = true;
+    const one = q.slice(0, 40);
+    fetch('/api/event', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ batch: one })
+    }).then(r => {
+      sending = false;
+      if (!r.ok) return;
+      const left = readQ().slice(one.length);
+      writeQ(left);
+      if (left.length) sendPending();
+    }).catch(() => { sending = false; });
+  }
+
+  // 页面打开时先把积压的补传一次
+  window.addEventListener('load', () => setTimeout(sendPending, 400));
   const $ = id => document.getElementById(id);
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -168,6 +206,7 @@
   function setFlip(on) {
     const card = $('card');
     const t = current();
+    if (on && !isFlipped()) trace(t.id, 'flip');
     card.dataset.flipped = String(on);
     card.setAttribute('aria-pressed', String(on));
     card.setAttribute('aria-label', on
@@ -207,6 +246,7 @@
     if (wasMastered) delete state.mastered[t.id];
     else state.mastered[t.id] = Date.now();
     save();
+    trace(t.id, wasMastered ? 'unmaster' : 'known');
     renderCard(isFlipped());
     if (!wasMastered) goToMasteredOrNext();
     if (!$('viewIndex').hidden) renderRows();
