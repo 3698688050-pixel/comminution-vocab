@@ -50,43 +50,69 @@
   const save = () => localStorage.setItem(STORE_KEY, JSON.stringify(state));
 
   /* ── 痕迹上报 ──────────────────────────────────────────────
-     线上是纯静态页，没有服务端可选。所以每条痕迹先写进浏览器的待传队列，
-     打开本机痕迹页时（同源 127.0.0.1 或 http://<本机>:8770）再一次性补传。
-     这样离线、断网、GitHub 页面本身都不会丢记录。 */
+     直连 Supabase：每次点击 insert 一行。没有服务端，也不依赖这个页面跑在哪个域名下。
+     网络失败时退回到本地队列，下次打开页面再补传，保证不丢。 */
+  const TRACE_CFG = window.VOCAB_TRACE || null;
+  const TRACE_ON = !!(TRACE_CFG && TRACE_CFG.url && TRACE_CFG.key);
   const QUEUE_KEY = STORE_KEY + ':queue';
-  const readQ = () => { try { return JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]'); } catch (e) { return []; } };
-  const writeQ = q => { try { localStorage.setItem(QUEUE_KEY, JSON.stringify(q.slice(-2000))); } catch (e) {} };
 
-  function trace(id, result) {
-    const q = readQ();
-    q.push({ id, result, at: new Date().toISOString() });
-    writeQ(q);
-    // 同源能通就立刻发出去（本机服务在跑时）
-    sendPending();
+  const readQ = () => {
+    try { return JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]'); } catch (e) { return []; }
+  };
+  const writeQ = q => {
+    try { localStorage.setItem(QUEUE_KEY, JSON.stringify(q.slice(-2000))); } catch (e) {}
+  };
+
+  const localDay = d =>
+    d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' +
+    String(d.getDate()).padStart(2, '0');
+
+  async function push(rows) {
+    if (!TRACE_ON || !rows.length) return false;
+    try {
+      const r = await fetch(TRACE_CFG.url + '/rest/v1/' + TRACE_CFG.table, {
+        method: 'POST',
+        headers: {
+          'apikey': TRACE_CFG.key,
+          'Authorization': 'Bearer ' + TRACE_CFG.key,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify(rows)
+      });
+      return r.ok || r.status === 201;
+    } catch (e) {
+      return false;
+    }
   }
 
-  let sending = false;
-  function sendPending() {
-    if (sending) return;
+  let flushing = false;
+  async function flush() {
+    if (flushing || !TRACE_ON) return;
     const q = readQ();
     if (!q.length) return;
-    sending = true;
-    const one = q.slice(0, 40);
-    fetch('/api/event', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ batch: one })
-    }).then(r => {
-      sending = false;
-      if (!r.ok) return;
-      const left = readQ().slice(one.length);
-      writeQ(left);
-      if (left.length) sendPending();
-    }).catch(() => { sending = false; });
+    flushing = true;
+    const chunk = q.slice(0, 50);
+    const ok = await push(chunk);
+    flushing = false;
+    if (ok) {
+      writeQ(readQ().slice(chunk.length));
+      if (readQ().length) flush();
+    }
   }
 
-  // 页面打开时先把积压的补传一次
-  window.addEventListener('load', () => setTimeout(sendPending, 400));
+  function trace(id, result) {
+    const now = new Date();
+    const row = { term_id: id, result: result, day: localDay(now), at: now.toISOString() };
+    // 先落本地，保证切走、断网都不丢；再尝试直传
+    const q = readQ();
+    q.push(row);
+    writeQ(q);
+    flush();
+  }
+
+  window.addEventListener('load', () => setTimeout(flush, 500));
+
   const $ = id => document.getElementById(id);
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
