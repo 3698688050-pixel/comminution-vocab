@@ -336,9 +336,13 @@
 
   // 点击词表某行：切到背词视图并定位到该词
   function goToTerm(id) {
-    const d = deck();
-    const i = d.findIndex(t => t.id === id);
-    if (i < 0) return;
+    let i = deck().findIndex(t => t.id === id);
+    if (i < 0) {
+      i = PLAN.findIndex(t => t.id === id);
+      if (i < 0) return;
+      state.scope = 'all';
+      renderScopes();
+    }
     state.idx = i;
     save();
     setView('study');
