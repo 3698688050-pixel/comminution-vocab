@@ -15,9 +15,17 @@
   const STORE_KEY = 'comminution-vocab/v2';
   const LEGACY_KEY = 'comminution-vocab/v1';
 
+  // 以词条属性为唯一硬度数据源；区间取中值，无法解析时排在末尾。
+  function hardness(t) {
+    const row = t.cat === 'material' && t.props.find(p => p[0] === '莫氏硬度');
+    const m = row && String(row[1]).match(/^\s*(\d+(?:\.\d+)?)(?:\s*[–—~-]\s*(\d+(?:\.\d+)?))?/);
+    return m ? { v: m[2] ? (Number(m[1]) + Number(m[2])) / 2 : Number(m[1]), raw: row[1] } : null;
+  }
+
   /* ── 词序：类目轮流取词，相邻两张必属不同类 ───────────────── */
   function interleave(terms) {
     const buckets = CATS.map(c => terms.filter(t => t.cat === c.key));
+    buckets[0].sort((a, b) => (hardness(a)?.v ?? Infinity) - (hardness(b)?.v ?? Infinity));
     const order = [];
     for (let i = 0; i < Math.max(...buckets.map(b => b.length)); i++) {
       for (const b of buckets) if (b[i]) order.push(b[i]);
@@ -115,14 +123,6 @@
 
   const $ = id => document.getElementById(id);
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-
-  // 莫氏硬度：唯一数据源是 props 里的「莫氏硬度」一行；无此行的物料不显示刻度
-  const HARD_RE = /^(\d+(?:\.\d+)?)/;
-  function hardness(t) {
-    const row = t.cat === 'material' && t.props.find(p => p[0] === '莫氏硬度');
-    const m = row && row[1].match(HARD_RE);
-    return m ? { v: parseFloat(m[1]), raw: row[1] } : null;
-  }
 
   // 十级刻度尺：亮到该物料所处位置，用来一眼判断软硬
   function mohsScale(t) {
