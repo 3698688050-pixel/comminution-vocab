@@ -21,7 +21,7 @@
 
 ## 用法
 
-双击 `index.html` 即可，纯静态、无构建、无网络请求（字体有本地回退）。
+通过 HTTP 服务打开，例如在仓库目录运行 `python3 -m http.server 8000`，再访问 `http://localhost:8000/`。页面异步请求本地词库 JSON，直接双击打开可能受到浏览器的跨域限制。
 
 - 轻触卡片或 `空格` / `回车` 翻面
 - `←` / `→` 换卡，`M` 标记已掌握（标记后自动跳下一张未掌握的）
@@ -36,7 +36,8 @@
 index.html              单页应用
 assets/styles.css       设计系统与组件
 assets/app.js           词序、翻转、进度
-data/terms.js           1000 词条，唯一真源
+data/terms.js           词条唯一真源，现 407 条
+data/terms.json         由 terms.js 生成，页面按需加载（勿手改）
 db/schema.sql           表 + 视图（SQLite 方言）
 db/seed.sql             生成的种子数据
 scripts/build-seed.mjs  校验词条并重生成 SQL
@@ -49,6 +50,8 @@ DESIGN.md               完整设计方案
 改 `data/terms.js`，然后：
 
 ```bash
+node scripts/generate-terms-json.js
+node scripts/generate-terms-json.js --check
 node scripts/build-seed.mjs
 ```
 

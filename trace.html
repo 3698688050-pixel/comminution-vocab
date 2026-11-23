@@ -104,7 +104,7 @@ h2{font-size:13px;font-weight:400;color:var(--ink-2);margin:0 0 18px;letter-spac
 .foot span{display:block}
 </style>
 <script src="assets/trace-config.js"></script>
-<script src="data/terms.js"></script>
+<link rel="preload" href="data/terms.json" as="fetch" crossorigin>
 </head>
 <body>
 <nav class="nav">
@@ -172,9 +172,9 @@ async function sb(path, params){
   return r.json();
 }
 
-// 词条中文名来自本地词库 terms.js
+// 词条中文名来自词库。
 const META = {};
-(window.TERMS || []).forEach(t => { META[t.id] = t; });
+let terms = window.TERMS;
 
 function rail(list, today){
   $('rail').innerHTML = list.map(w => `
@@ -187,6 +187,13 @@ function rail(list, today){
 
 async function load(){
   try{
+    if (!terms) {
+      const response = await fetch('data/terms.json');
+      if (!response.ok) throw new Error('词库 HTTP ' + response.status);
+      terms = await response.json();
+    }
+    if (!Array.isArray(terms) || !terms.length) throw new Error('词库为空或格式错误');
+    terms.forEach(t => { META[t.id] = t; });
     const today = ymd(new Date());
     const weekStart = daysAgo(6);
 
@@ -215,7 +222,7 @@ async function load(){
       times[r.term_id] = (times[r.term_id] || 0) + 1;
     });
     const mastered = Object.values(last).filter(v => v === 'known').length;
-    const total = (window.TERMS || []).length || 407;
+    const total = terms.length;
 
     const days = Object.keys(byDay).sort().reverse();
     let streak = 0;

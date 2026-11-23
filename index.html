@@ -10,6 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/styles.css">
 <link rel="stylesheet" href="assets/preview-dark.css">
+<link rel="preload" href="data/terms.json" as="fetch" crossorigin>
 </head>
 <body>
 <div class="wrap">
@@ -31,7 +32,7 @@
     <section id="viewStudy" aria-labelledby="tabStudy">
       <div class="deck">
         <div class="card" id="card" data-flipped="false" tabindex="0" role="button"
-             aria-pressed="false" aria-live="polite"></div>
+             aria-pressed="false" aria-live="polite">词库载入中…</div>
       </div>
 
       <div class="controls">
@@ -60,8 +61,7 @@
   </main>
 </div>
 
-<script src="data/terms.js"></script>
   <script src="assets/trace-config.js"></script>
-  <script src="assets/app.js?v=b084e4b"></script>
+  <script src="assets/app.js?v=terms-json-1"></script>
 </body>
 </html>

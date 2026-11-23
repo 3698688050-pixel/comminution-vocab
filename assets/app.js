@@ -33,7 +33,23 @@
     return order.map((t, i) => Object.assign({}, t, { seq: i }));
   }
 
-  const PLAN = interleave(window.TERMS || []);
+  async function boot() {
+  let terms;
+  try {
+    if (window.TERMS) terms = window.TERMS;
+    else {
+      const response = await fetch('data/terms.json');
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      terms = await response.json();
+    }
+    if (!Array.isArray(terms) || !terms.length) throw new Error('词库为空或格式错误');
+  } catch (e) {
+    const card = document.getElementById('card');
+    card.textContent = '词库载入失败，请检查网络后刷新页面重试。';
+    card.setAttribute('aria-label', card.textContent);
+    return;
+  }
+  const PLAN = interleave(terms);
   const TOTAL = PLAN.length;
 
   /* ── state ──────────────────────────────────────────────── */
@@ -392,4 +408,6 @@
   /* ── boot ───────────────────────────────────────────────── */
   renderScopes();
   renderCard(false);
+  }
+  boot();
 })();
