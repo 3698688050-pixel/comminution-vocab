@@ -104,7 +104,7 @@ h2{font-size:13px;font-weight:400;color:var(--ink-2);margin:0 0 18px;letter-spac
 .foot span{display:block}
 </style>
 <script src="assets/trace-config.js"></script>
-<link rel="preload" href="data/terms.json" as="fetch" crossorigin>
+<link rel="preload" href="data/terms.json" as="fetch" crossorigin="anonymous">
 </head>
 <body>
 <nav class="nav">
@@ -188,7 +188,7 @@ function rail(list, today){
 async function load(){
   try{
     if (!terms) {
-      const response = await fetch('data/terms.json');
+      const response = await fetch('data/terms.json', { credentials: 'same-origin' });
       if (!response.ok) throw new Error('词库 HTTP ' + response.status);
       terms = await response.json();
     }
