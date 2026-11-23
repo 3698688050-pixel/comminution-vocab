@@ -38,7 +38,7 @@
   try {
     if (window.TERMS) terms = window.TERMS;
     else {
-      const response = await fetch('data/terms.json', { credentials: 'same-origin' });
+      const response = await fetch('data/terms.json', { mode: 'cors', credentials: 'same-origin' });
       if (!response.ok) throw new Error('HTTP ' + response.status);
       terms = await response.json();
     }

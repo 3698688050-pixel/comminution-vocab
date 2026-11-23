@@ -188,7 +188,7 @@ function rail(list, today){
 async function load(){
   try{
     if (!terms) {
-      const response = await fetch('data/terms.json', { credentials: 'same-origin' });
+      const response = await fetch('data/terms.json', { mode: 'cors', credentials: 'same-origin' });
       if (!response.ok) throw new Error('词库 HTTP ' + response.status);
       terms = await response.json();
     }
